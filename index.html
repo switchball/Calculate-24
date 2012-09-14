@@ -1,0 +1,170 @@
+<html>
+<body>
+<div id="wrapper" align="center">
+<h1>Calculate 24!</h1>
+<form>
+<table>
+<tr>
+<td><input id="num1" value="1.2"></td>
+<td><input id="num2" value="2"></td>
+</tr>
+<tr>
+<td><input id="num3" value="7"></td>
+<td><input id="num4" value="6"></td>
+</tr>
+</table>
+</form>
+<input type="button" onclick="main();" value="Calculate!">
+<div id="result"></div>
+</div>
+<script type="text/javascript">
+function getMethod(n, expect)
+{
+	n.sort(function(a,b){return a-b;})
+	var type = getType(n);
+	var nn = getUnrepeatFormat(n);
+	var arr = getArrangement(type);
+	var op = getOperator();
+	var model = getModel();
+	var methodModel = new Array();
+	var methodValue = new Array();
+	for (var k=0; k<model.length; k++)	//model iteration
+	{
+		var s = model[k];
+		for (var l=0; l<op.length; l++) //operator iteration
+		{
+			var ss = s.replace("+",op[l].charAt(0)).replace("+",op[l].charAt(1)).replace("+",op[l].charAt(2));
+			for (var m=0; m<arr.length; m++)	//arrangement iteration
+			{
+				var ssm = ss.replace("0",arr[m].charAt(0)).replace("0",arr[m].charAt(1)).replace("0",arr[m].charAt(2)).replace("0",arr[m].charAt(3));
+				var ssv = ssm.replace(/a/g,nn[0]).replace(/b/g,nn[1]).replace(/c/g,nn[2]).replace(/d/g,nn[3]);
+				if (Math.abs(eval(ssv)-expect)<1e-6)
+				{
+					var t = 0;
+					for(; t<methodModel.length; t++)
+					{
+						if (check(ssm, methodModel[t],type)) break;
+					}
+					if (t == methodModel.length)
+					{
+						methodModel.push(ssm);
+						methodValue.push(ssv);
+					}
+					//else may change to better?
+				}
+			}
+		}
+	}
+	return methodValue;
+}
+
+function check(model1, model2, type)
+{
+	var n;
+	switch(type)
+	{
+		case 4:    n = new Array(7);		//This means 7,7,7,7
+		case 31:   n = new Array(3,7);		//This means 3,3,3,7
+		case 22:   n = new Array(3,7);		//This means 3,3,7,7
+		case 13:   n = new Array(7,3);		//This means 7,3,3,3
+		case 211:  n = new Array(3,11,101);	//This means 3,3,11,101
+		case 121:  n = new Array(11,3,101);	//This means 11,3,3,101
+		case 112:  n = new Array(11,101,3);	//This means 11,101,3,3
+		case 1111: n = new Array(2,5,11,111);	//You know what it means
+	}
+	
+	var exp1 = model1.replace(/a/g,n[0]).replace(/b/g,n[1]).replace(/c/g,n[2]).replace(/d/g,n[3]);
+	var exp2 = model2.replace(/a/g,n[0]).replace(/b/g,n[1]).replace(/c/g,n[2]).replace(/d/g,n[3]);
+	var result1 = eval(exp1);
+	var result2 = eval(exp2);
+	
+	if (Math.abs(result1-result2)>1e-6) return false;
+
+	return true;
+}
+
+function getUnrepeatFormat(n)
+{
+	var unrepeatformat = new Array();
+	var crt = n[0], index = 0;
+	unrepeatformat.push(crt);
+	while (index < n.length)
+		if (n[index++] != crt) 
+			{crt=n[index-1]; unrepeatformat.push(crt);}
+	return unrepeatformat;
+}
+
+function getType(n)
+{
+	var type = 0;
+	var crt  = n[0], index = 0, last = 0;
+	while (index < n.length)
+	{
+		if (n[index] != crt)
+		    {crt=n[index]; type=type*10+(index-last); last=index;}
+		index++;
+	}
+	type = type * 10 + (n.length - last);
+	return type;
+}
+
+function getArrangement(type)
+{
+	switch(type)
+	{
+		case 4:    return new Array("aaaa");
+		case 31:   return new Array("aaab","aaba","abaa","baaa");
+		case 22:   return new Array("aabb","abab","abba","baab","baba","bbaa");
+		case 13:   return new Array("abbb","babb","bbab","bbba");
+		case 211:  return new Array("aabc","aacb","abac","abca","acab","acba","baac","baca","bcaa","caab","caba","cbaa");
+		case 121:  return new Array("abbc","abcb","acbb","babc","bacb","bbac","bbca","bcab","bcba","cabb","cbab","cbba");
+		case 112:  return new Array("abcc","acbc","accb","bacc","bcac","bcca","cabc","cacb","cbac","cbca","ccab","ccba");
+		case 1111: return new Array("abcd","abdc","acbd","acdb","adbc","adcb","bacd","badc","bcad","bcda","bdac","bdca",
+				"cabd","cadb","cbad","cbda","cdab","cdba","dabc","dacb","dbac","dbca","dcab","dcba")
+	}
+}
+
+function getOperator()
+{
+	var op = new Array(64), a, b, c, s = new Array("+","-","*","/");
+	for (var k=0; k<64; k++)
+	{
+		c = k % 4;
+		b = (k % 16) >> 2;
+		a = k >> 4;
+		op[k] = s[a]+s[b]+s[c];
+	}
+	return op;
+}
+
+function getModel()
+{
+	return new Array("0+0+0+0","(0+0)+0+0","(0+0+0)+0","0+(0+0)+0","0+(0+0+0)","0+0+(0+0)","(0+0)+(0+0)",
+						"((0+0)+0)+0","(0+(0+0))+0","0+((0+0)+0)","0+(0+(0+0))");			//Templates
+}
+
+function main()
+{
+	var n1 = document.getElementById("num1").value;
+	var n2 = document.getElementById("num2").value;
+	var n3 = document.getElementById("num3").value;
+	var n4 = document.getElementById("num4").value;
+	var n = new Array(n1, n2, n3, n4);
+	//document.write("Number: " + n + "</br>");
+	//document.write("Type: " + getType(n))
+	document.getElementById("result").innerHTML="You may input something bad.";
+	var method = getMethod(n,24);
+	method.push("");
+	var str;
+	if (method.length == 1)
+		str = "Unluckily, no available method.";
+	else
+		str = "Available Method:</br></br>" + method.join("=24</br>")
+	document.getElementById("result").innerHTML = str;
+
+}
+
+</script>
+
+</body>
+</html>
